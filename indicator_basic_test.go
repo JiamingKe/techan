@@ -44,3 +44,20 @@ func TestTypicalPriceIndicator_Calculate(t *testing.T) {
 
 	assert.EqualValues(t, "1.2143", typicalPrice.FormattedString(4))
 }
+
+func TestMedianPriceIndicator_Calculate(t *testing.T) {
+	series := NewTimeSeries()
+
+	candle := NewCandle(TimePeriod{
+		Start: time.Now(),
+		End:   time.Now().Add(time.Minute),
+	})
+	candle.MinPrice = big.NewFromString("1.2080")
+	candle.MaxPrice = big.NewFromString("1.22")
+
+	series.AddCandle(candle)
+
+	medianPrice := NewMedianPriceIndicator(series).Calculate(0)
+
+	assert.EqualValues(t, "1.2140", medianPrice.FormattedString(4))
+}
