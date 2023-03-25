@@ -8,62 +8,58 @@ type Rule interface {
 }
 
 // And returns a new rule whereby BOTH of the passed-in rules must be satisfied for the rule to be satisfied
-func And(r1, r2 Rule) Rule {
-	return andRule{r1, r2}
-}
-
-// Or returns a new rule whereby ONE OF the passed-in rules must be satisfied for the rule to be satisfied
-func Or(r1, r2 Rule) Rule {
-	return orRule{r1, r2}
+func And(rules ...Rule) Rule {
+	return andRule{rules: rules}
 }
 
 type andRule struct {
-	r1 Rule
-	r2 Rule
+	rules []Rule
 }
 
 func (ar andRule) IsSatisfied(index int, record *TradingRecord) bool {
-	return ar.r1.IsSatisfied(index, record) && ar.r2.IsSatisfied(index, record)
+	for _, r := range ar.rules {
+		if !r.IsSatisfied(index, record) {
+			return false
+		}
+	}
+	return true
+}
+
+// Or returns a new rule whereby ONE OF the passed-in rules must be satisfied for the rule to be satisfied
+func Or(rules ...Rule) Rule {
+	return orRule{rules: rules}
 }
 
 type orRule struct {
-	r1 Rule
-	r2 Rule
+	rules []Rule
 }
 
 func (or orRule) IsSatisfied(index int, record *TradingRecord) bool {
-	return or.r1.IsSatisfied(index, record) || or.r2.IsSatisfied(index, record)
+	for _, r := range or.rules {
+		if r.IsSatisfied(index, record) {
+			return true
+		}
+	}
+	return false
 }
 
-// OverIndicatorRule is a rule where the First Indicator must be greater than the Second Indicator to be Satisfied
-type OverIndicatorRule struct {
-	First  Indicator
-	Second Indicator
+// Under is a rule where the previous Indicators must be less than the following Indicators to be Satisfied
+func Under(indicators ...Indicator) Rule {
+	return underIndicatorRule{indicators: indicators}
 }
 
-// IsSatisfied returns true when the First Indicator is greater than the Second Indicator
-func (oir OverIndicatorRule) IsSatisfied(index int, record *TradingRecord) bool {
-	return oir.First.Calculate(index).GT(oir.Second.Calculate(index))
+type underIndicatorRule struct {
+	indicators []Indicator
 }
 
-// UnderIndicatorRule is a rule where the First Indicator must be less than the Second Indicator to be Satisfied
-type UnderIndicatorRule struct {
-	First  Indicator
-	Second Indicator
-}
-
-// IsSatisfied returns true when the First Indicator is less than the Second Indicator
-func (uir UnderIndicatorRule) IsSatisfied(index int, record *TradingRecord) bool {
-	return uir.First.Calculate(index).LT(uir.Second.Calculate(index))
-}
-
-type percentChangeRule struct {
-	indicator Indicator
-	percent   big.Decimal
-}
-
-func (pgr percentChangeRule) IsSatisfied(index int, record *TradingRecord) bool {
-	return pgr.indicator.Calculate(index).Abs().GT(pgr.percent.Abs())
+// IsSatisfied returns true when the previous Indicators are less than the following Indicators
+func (uir underIndicatorRule) IsSatisfied(index int, record *TradingRecord) bool {
+	for i := 0; i < len(uir.indicators)-1; i++ {
+		if !uir.indicators[i].Calculate(index).LT(uir.indicators[i+1].Calculate(index)) {
+			return false
+		}
+	}
+	return true
 }
 
 // NewPercentChangeRule returns a rule whereby the given Indicator must have changed by a given percentage to be satisfied.
@@ -73,4 +69,13 @@ func NewPercentChangeRule(indicator Indicator, percent float64) Rule {
 		indicator: NewPercentChangeIndicator(indicator),
 		percent:   big.NewDecimal(percent),
 	}
+}
+
+type percentChangeRule struct {
+	indicator Indicator
+	percent   big.Decimal
+}
+
+func (pcr percentChangeRule) IsSatisfied(index int, record *TradingRecord) bool {
+	return pcr.indicator.Calculate(index).Abs().GT(pcr.percent.Abs())
 }

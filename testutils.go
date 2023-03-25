@@ -22,7 +22,6 @@ var mockedTimeSeries = mockTimeSeriesFl(
 
 func randomTimeSeries(size int) *TimeSeries {
 	vals := make([]string, size)
-	rand.Seed(time.Now().Unix())
 	for i := 0; i < size; i++ {
 		val := rand.Float64() * 100
 		if i == 0 {

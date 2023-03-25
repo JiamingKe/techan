@@ -36,6 +36,12 @@ func TestAndRule(t *testing.T) {
 
 		assert.False(t, rule.IsSatisfied(0, nil))
 	})
+
+	t.Run("two of each", func(t *testing.T) {
+		rule := And(truthRule{}, truthRule{}, falseRule{}, falseRule{})
+
+		assert.False(t, rule.IsSatisfied(0, nil))
+	})
 }
 
 func TestOrRule(t *testing.T) {
@@ -56,49 +62,27 @@ func TestOrRule(t *testing.T) {
 
 		assert.True(t, rule.IsSatisfied(0, nil))
 	})
-}
 
-func TestOverIndicatorRule(t *testing.T) {
-	highIndicator := NewConstantIndicator(1)
-	lowIndicator := NewConstantIndicator(0)
-
-	t.Run("returns true when first indicator is over second indicator", func(t *testing.T) {
-		rule := OverIndicatorRule{
-			First:  highIndicator,
-			Second: lowIndicator,
-		}
+	t.Run("two of each", func(t *testing.T) {
+		rule := Or(truthRule{}, truthRule{}, falseRule{}, falseRule{})
 
 		assert.True(t, rule.IsSatisfied(0, nil))
-	})
-
-	t.Run("returns false when first indicator is under second indicator", func(t *testing.T) {
-		rule := OverIndicatorRule{
-			First:  lowIndicator,
-			Second: highIndicator,
-		}
-
-		assert.False(t, rule.IsSatisfied(0, nil))
 	})
 }
 
 func TestUnderIndicatorRule(t *testing.T) {
-	highIndicator := NewConstantIndicator(1)
-	lowIndicator := NewConstantIndicator(0)
+	zeroIndicator := NewConstantIndicator(0)
+	oneIndicator := NewConstantIndicator(1)
+	twoIndicator := NewConstantIndicator(2)
 
 	t.Run("returns true when first indicator is under second indicator", func(t *testing.T) {
-		rule := UnderIndicatorRule{
-			First:  lowIndicator,
-			Second: highIndicator,
-		}
+		rule := Under(zeroIndicator, oneIndicator, twoIndicator)
 
 		assert.True(t, rule.IsSatisfied(0, nil))
 	})
 
 	t.Run("returns false when first indicator is over second indicator", func(t *testing.T) {
-		rule := UnderIndicatorRule{
-			First:  highIndicator,
-			Second: lowIndicator,
-		}
+		rule := Under(oneIndicator, zeroIndicator)
 
 		assert.False(t, rule.IsSatisfied(0, nil))
 	})
