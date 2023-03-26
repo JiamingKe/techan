@@ -1,4 +1,4 @@
-module github.com/jiaming/techan
+module github.com/jiamingke/techan
 
 go 1.20
 
