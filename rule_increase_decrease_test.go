@@ -7,59 +7,64 @@ import (
 )
 
 func TestIncreaseRule(t *testing.T) {
-	t.Run("returns false when index == 0", func(t *testing.T) {
-		rule := IncreaseRule{}
+	const window = 3
 
-		assert.False(t, rule.IsSatisfied(0, nil))
+	t.Run("returns false when index < window - 1", func(t *testing.T) {
+		rule := NewIncreaseRule(NewClosePriceIndicator(mockTimeSeries()), window)
+
+		assert.False(t, rule.IsSatisfied(window-2, nil))
 	})
 
 	t.Run("returns true when increase", func(t *testing.T) {
-		series := mockTimeSeries("1", "2")
-		rule := IncreaseRule{NewClosePriceIndicator(series)}
+		series := mockTimeSeries("1", "2", "3")
+		rule := NewIncreaseRule(NewClosePriceIndicator(series), window)
 
-		assert.True(t, rule.IsSatisfied(1, nil))
+		assert.True(t, rule.IsSatisfied(window-1, nil))
 	})
 
-	t.Run("returns false when same", func(t *testing.T) {
-		series := mockTimeSeries("1", "1")
-		rule := IncreaseRule{NewClosePriceIndicator(series)}
+	t.Run("returns false when part of it same", func(t *testing.T) {
+		series := mockTimeSeries("1", "2", "2")
+		rule := NewIncreaseRule(NewClosePriceIndicator(series), window)
 
-		assert.False(t, rule.IsSatisfied(1, nil))
+		assert.False(t, rule.IsSatisfied(window-1, nil))
 	})
 
-	t.Run("returns false when decrease", func(t *testing.T) {
-		series := mockTimeSeries("1", "0")
-		rule := IncreaseRule{NewClosePriceIndicator(series)}
+	t.Run("returns false when part of it decrease", func(t *testing.T) {
+		series := mockTimeSeries("1", "2", "1")
+		rule := NewIncreaseRule(NewClosePriceIndicator(series), window)
 
-		assert.False(t, rule.IsSatisfied(1, nil))
+		assert.False(t, rule.IsSatisfied(window-1, nil))
 	})
 }
 
 func TestDecreaseRule(t *testing.T) {
-	t.Run("returns false when index == 0", func(t *testing.T) {
-		rule := DecreaseRule{}
+	const window = 3
 
-		assert.False(t, rule.IsSatisfied(0, nil))
+	t.Run("returns false when index < window - 1", func(t *testing.T) {
+		rule := NewDecreaseRule(NewClosePriceIndicator(mockTimeSeries()), window)
+
+		assert.False(t, rule.IsSatisfied(window-2, nil))
 	})
 
 	t.Run("returns true when decrease", func(t *testing.T) {
-		series := mockTimeSeries("1", "0")
-		rule := DecreaseRule{NewClosePriceIndicator(series)}
+		series := mockTimeSeries("3", "2", "1")
+		rule := NewDecreaseRule(NewClosePriceIndicator(series), window)
 
-		assert.True(t, rule.IsSatisfied(1, nil))
+		assert.True(t, rule.IsSatisfied(window-1, nil))
 	})
 
-	t.Run("returns false when  decrease", func(t *testing.T) {
-		series := mockTimeSeries("1", "2")
-		rule := DecreaseRule{NewClosePriceIndicator(series)}
+	t.Run("returns false when part of it same", func(t *testing.T) {
+		series := mockTimeSeries("2", "2", "1")
+		rule := NewDecreaseRule(NewClosePriceIndicator(series), window)
+
+		assert.False(t, rule.IsSatisfied(window-1, nil))
+	})
+
+	t.Run("returns false when part of it increase", func(t *testing.T) {
+		series := mockTimeSeries("1", "2", "1")
+		rule := NewDecreaseRule(NewClosePriceIndicator(series), window)
 
 		assert.False(t, rule.IsSatisfied(1, nil))
 	})
 
-	t.Run("returns false when same", func(t *testing.T) {
-		series := mockTimeSeries("1", "1")
-		rule := IncreaseRule{NewClosePriceIndicator(series)}
-
-		assert.False(t, rule.IsSatisfied(1, nil))
-	})
 }
