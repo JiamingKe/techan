@@ -23,4 +23,11 @@ func TestAlligatorIndicator(t *testing.T) {
 		decimalEquals(t, 28145.5320, indicator.Calculate(window+offset))
 	})
 
+	t.Run("third value", func(t *testing.T) {
+
+		series := generateTestTimeSeries()
+		indicator := NewAlligatorIndicator(series, window, offset)
+
+		decimalEquals(t, 28156.7956, indicator.Calculate(window+offset+1))
+	})
 }
